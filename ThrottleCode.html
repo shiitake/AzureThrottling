@@ -1,0 +1,157 @@
+
+<html>
+<title>Throttle Code Tool</title>
+
+<script type="text/javascript">
+
+    function GetThrottleInfo(form) {
+        var reasonCode = customerInput.reason.value; //int
+        var mode = (reasonCode % 4);
+        customerInput.throttleMode.value = modeFunction(mode);
+        var loops = resourceFunction(reasonCode);
+        customerInput.resourceType.value = loops[1];
+        customerInput.throttleType.value = typeFunction();
+        form.throttleMode.value = modeFunction(mode);
+
+        function modeFunction(mode) {   //calculate throttling mode
+            var throttlingMode;
+            switch (mode) {
+                case 0:
+                    throttlingMode = "No throttling";
+                    break;
+                case 1:
+                    throttlingMode = "Reject Updates and Inserts";
+                    break
+                case 2:
+                    throttlingMode = "Reject All Writes";
+                    break;
+                case 3:
+                    throttlingMode = "Reject All Reads and Writes";
+                    break;
+                default:
+                    throttlingMode = "Unknown.";
+            }
+            return throttlingMode;
+        }
+
+        function resourceFunction(reasonCode) {   //calculate resource type
+            var loops = 0;
+            var resourceType;
+            var holdercode = parseInt(reasonCode / 256);
+            //determine loops value
+            try
+            {
+                do {
+                    if (holdercode == 0)
+                    {
+                        throw "Divide by zero";
+                    }
+                    else if (holdercode % 2 > 0)
+                    {
+                        holdercode = -1;
+                    }
+                    else {
+                        loops++;
+                        holdercode /= 2;
+                    }
+                }
+                while (holdercode > -1);
+            }
+            catch (err) {
+                var y = document.getElementById("Errors");
+                y.innerHTML = "Error: " + err + ". These results above may not be accurate. <br>Please verify that you are using a valid reason code and try your request again.";
+                loops = -1;
+                resourceType = "(see below)";
+                return[loops, resourceType]
+            }
+            //resource type calculation
+            switch (parseInt(loops / 2)) {
+                case 0:
+                    resourceType = "Physical Database Space";
+                    break;
+                case 1:
+                    resourceType = "Physical Log Space";
+                    break;
+                case 2:
+                    resourceType = "LogWriteIODelay";
+                    break;
+                case 3:
+                    resourceType = "DataReadIODelay";
+                    break;
+                case 4:
+                    resourceType = "CPU";
+                    break;
+                case 5:
+                    resourceType = "Database Size";
+                    break;
+                case 6:
+                    resourceType = "Internal";
+                    break;
+                case 7:
+                    resourceType = "SQL Worker Threads";
+                    break;
+                case 8:
+                    resourceType = "Internal";
+                    break;
+                default:
+                    resourceType = "Resource Type is unknown.";
+            }
+            loops++;
+            return [loops, resourceType];
+        }
+
+        function typeFunction() {   //calculate throttling type
+            var throttlingType;
+            if (loops[0] == -1)
+            {
+                throttlingType = "(see below)";
+            }
+            else if (loops[0] % 2 == 0 && mode > 0)
+            {
+                throttlingType = "Hard Throttle";
+            }
+            else if (mode > 0) {
+                throttlingType = "Soft Throttle";
+            }
+            else {
+                throttlingType = "No Throttling";
+            }
+            return throttlingType;
+        }
+    }
+
+    function ClearThrottleInfo(form) {
+        customerInput.reason.value = "";
+        customerInput.throttleMode.value = "";
+        customerInput.resourceType.value = "";
+        customerInput.throttleType.value = "";
+        var y = document.getElementById("Errors");
+        y.innerHTML = "";
+    }
+</script>
+
+<FORM name="customerInput">
+    <table border ="1">
+<tr>
+<td>Insert the Throtting Reason Code:</td>
+    <td><INPUT TYPE="int" NAME="reason"> </td>
+</tr>
+<tr>
+    <td>Throttling Mode:</td>
+    <td><input type="text" name="throttleMode" value size ="30" readonly></td>
+</tr><tr>
+    <td>Thottling Type:</td>
+    <td><input type="text" name="throttleType" value size ="30" readonly></td>
+    </tr><tr>
+    <td>Throttling resource:</td>
+    <td><input type="text" name="resourceType" value size ="30" readonly></td>
+    </tr>
+</table>
+<p></p>
+<INPUT TYPE="button" VALUE="Submit" onclick="GetThrottleInfo(document.customerInput)">
+    <INPUT TYPE="button" VALUE="Clear" onclick="ClearThrottleInfo(document.customerInput)">
+</FORM>
+<span style="color:red">
+<p id="Errors"></p>
+    </span>
+</html>
