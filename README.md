@@ -1,7 +1,7 @@
 AzureThrottling
 ===============
 
-This is pretty simple JavaScript that can be used to determine what your Azure SQL DB throttling code means. 
+This is pretty simple html page that uses JavaScript to determine what your Azure SQL DB throttling code means. 
 
 Specifically: 
 1. The throttle mode
